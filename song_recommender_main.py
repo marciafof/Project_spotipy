@@ -55,8 +55,8 @@ def get_tracks_audio_features(track_id_list):
     Return:
         pd.Dataframe 
     """
-    columns = ["danceability","energy","loudness","speechiness","acousticness",
-        "instrumentalness","liveness","valence","tempo","id","duration_ms"]
+    columns = ["danceability","energy","speechiness","acousticness",
+        "instrumentalness","liveness","valence","tempo","id"]
     #Extract audio features through the spotipy wrapper using audio_features
     #This is equivalent to only One request
     tracks_features = sp.audio_features(track_id_list)
@@ -107,9 +107,10 @@ def search_for_song(track_title,track_artist=None, market=None):
     return track_ids,track_hlinks
 
 def scale_predict_new_entry(track_id, 
-                            scaler_path="model_ui/song_recom_scaler.pickle",
-                            model_path="model_ui/song_recom_model.pickle",
-                            data_path = "model_ui/labeled_db_for_recommendation.csv"):
+                            scaler_path="demo/model_db/song_recom_scaler.pickle",
+                            model_path="demo/model_db/song_recom_kmeans.pickle",
+                            data_path = "demo/labeled_db",
+                            nsuggests = 3):
     """ 
     Function to scale new entry according to the model's scaler produced in the training.
     The new entry is a track id that is used as an input for the get audio features function.
@@ -117,10 +118,10 @@ def scale_predict_new_entry(track_id,
     The audio features from the track_id are return as a dataframe and scaled using the
     scaler.transform.
     
-    The transform 
+    The transformation is the 
     
     """
-    audio_features_selected =  ["danceability","energy","loudness","speechiness","acousticness",
+    audio_features_selected =  ["danceability","energy","speechiness","acousticness",
     "instrumentalness","liveness","valence","tempo"]
     #Get audio track features
     df_track_features = get_tracks_audio_features([track_id])
@@ -136,17 +137,22 @@ def scale_predict_new_entry(track_id,
     
     #Predicting label with saved model
     closest_cluster_label = saved_model.predict(df_scaled_user_input_song)
+    dataframe_songs_path =f"{data_path}/cluster_{closest_cluster_label[0]}.csv"
     
     #Choosing song from our database that matches the characteristics of new song
-    df_recommentation = pd.read_csv(data_path)
+    df_recommentation = pd.read_csv(dataframe_songs_path)
     
     #Select songs from same cluster
     cluster_df = df_recommentation[df_recommentation["cluster"] == int(closest_cluster_label)]
 
     # Select a random song from the cluster
-    random_song = cluster_df.sample(n=1)
+    random_song = cluster_df.sample(n=nsuggests)
     random_song.reset_index(inplace = True)
-    id_recommended_song = random_song.id[0]
+    if nsuggests > 1:
+        id_recommended_song = list(random_song.id.values)
+    else:
+        
+        id_recommended_song = [random_song.id[0]]
     
     #id_recommended_song = "3e9HZxeyfWwjeyPAMmWSSQ" #just for test
     

@@ -76,7 +76,7 @@ with st.form(key='columns_in_form'):
         track_title = st.text_input(label="**Song's title**")
     with col_artist:
         track_artist = st.text_input(label="**Song's artist**")
-    submitButton = st.form_submit_button(label = 'Go!')
+    submitButton = st.form_submit_button(label = 'Go!',use_container_width=True)
 
 #%% Call the function to look for tracks id
 if "recommend" not in st.session_state:
@@ -94,15 +94,15 @@ if "newtrackid" not in st.session_state:
 #%%
 if submitButton:
     if track_title and track_artist:
-        st.write(track_title)
-        st.write(track_artist)
+        #st.write(track_title)
+        #st.write(track_artist)
         #Launch the function that searches for a song
         tracks_ids, tracks_hrefs = song_recom.search_for_song(track_title, track_artist)
-        st.write(tracks_ids)
+        #st.write(tracks_ids)
     elif track_title:
-        st.write(track_title)
+        #st.write(track_title)
         tracks_ids, tracks_hrefs = song_recom.search_for_song(track_title, None)
-        st.write(tracks_ids)
+        #st.write(tracks_ids)
     st.session_state.newtrackid = tracks_ids
     ncols = len(tracks_ids)
     st.session_state.ncols = ncols
@@ -131,7 +131,7 @@ if st.session_state.songoptions:
                 placeholder_recommendation = st.empty()
                 with placeholder_recommendation:
                     components.html (play_song_from_spotify(tracks_ids[0]), height=400)
-                agree_id1 = st.button("I agree", key="opt1")
+                agree_id1 = st.button("Option 1", key="opt1")
                 if agree_id1:
                     st.session_state.recommend=True
                     st.session_state.chosentrack=tracks_ids[0]
@@ -139,7 +139,7 @@ if st.session_state.songoptions:
                  placeholder_recommendation = st.empty()
                  with placeholder_recommendation:
                      components.html (play_song_from_spotify(tracks_ids[1]), height=400)
-                 agree_id2 = st.button("I agree", key="opt2")
+                 agree_id2 = st.button("Option 2", key="opt2")
                  if agree_id2:
                      st.session_state.recommend=True
                      st.session_state.chosentrack=tracks_ids[1]
@@ -147,7 +147,7 @@ if st.session_state.songoptions:
                  placeholder_recommendation = st.empty()
                  with placeholder_recommendation:
                      components.html (play_song_from_spotify(tracks_ids[2]), height=400)
-                 agree_id3 = st.button("I agree", key="opt3")
+                 agree_id3 = st.button("Option 3", key="opt3")
                  if agree_id3:
                      st.session_state.recommend=True
                      st.session_state.chosentrack=tracks_ids[2]
@@ -155,10 +155,24 @@ if st.session_state.songoptions:
 if st.session_state.recommend:
     track_to_search = st.session_state.chosentrack
     st.markdown(
-    """<font size = 18px weight=700>
-    <span style="color:#fffff">We found something you may like</span> </font>""",unsafe_allow_html=True)
-    recomended_trackid = song_recom.scale_predict_new_entry(track_to_search)
-    placeholder_recommendation = st.empty()
-    with placeholder_recommendation:
-        components.html (play_song_from_spotify(recomended_trackid), height=400)
+    """
+    <span style="color:#fffff; font-size:20px">We found something you may like :tada:</span>""",unsafe_allow_html=True)
+    recomended_trackids = song_recom.scale_predict_new_entry(track_to_search)
+    #By default we get 3 columns of recommendations
+    recom_1,recom_2,recom_3 = st.columns(3)
+    with recom_1:
+            placeholder_recommendation = st.empty()
+            with placeholder_recommendation:
+                components.html (play_song_from_spotify(recomended_trackids[0]), height=400)
+    with recom_2:
+             placeholder_recommendation = st.empty()
+             with placeholder_recommendation:
+                 components.html (play_song_from_spotify(recomended_trackids[1]), height=400)
+    with recom_3:
+             placeholder_recommendation = st.empty()
+             with placeholder_recommendation:
+                 components.html (play_song_from_spotify(recomended_trackids[2]), height=400)
+    # placeholder_recommendation = st.empty()
+    # with placeholder_recommendation:
+    #     components.html (play_song_from_spotify(recomended_trackid), height=400)
 
